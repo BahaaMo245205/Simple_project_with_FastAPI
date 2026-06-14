@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth System - JWT Learning</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; margin-bottom: 24px; color: #333; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; margin-bottom: 6px; color: #666; font-size: 14px; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; outline: none; transition: 0.2s; }
+        .input-group input:focus { border-color: #0066cc; box-shadow: 0 0 5px rgba(0,102,204,0.2); }
+        button { width: 100%; padding: 12px; background: #0066cc; border: none; border-radius: 6px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #0052a3; }
+        .toggle-text { text-align: center; margin-top: 16px; font-size: 14px; color: #555; }
+        .toggle-text span { color: #0066cc; cursor: pointer; font-weight: bold; }
+        .error-msg { color: #ff3333; font-size: 14px; margin-top: 10px; text-align: center; display: none; }
+        .success-msg { color: #22bb33; font-size: 14px; margin-top: 10px; text-align: center; display: none; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-form">
+        <h2>تسجيل الدخول</h2>
+        <div class="input-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="login-email" placeholder="example@mail.com">
+        </div>
+        <div class="input-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="login-password" placeholder="••••••••">
+        </div>
+        <button onclick="handleLogin()">دخول</button>
+        <p class="toggle-text">معندكش حساب؟ <span onclick="toggleForms()">سجل حساب جديد</span></p>
+    </div>
+
+    <div id="signup-form" class="hidden">
+        <h2>إنشاء حساب جديد</h2>
+        <div class="input-group">
+            <label>اسم المستخدم</label>
+            <input type="text" id="signup-username" placeholder="BahaaMohamed">
+        </div>
+        <div class="input-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="signup-email" placeholder="example@mail.com">
+        </div>
+        <div class="input-group">
+            <label>كلمة المرور (8 أحرف على الأقل)</label>
+            <input type="password" id="signup-password" placeholder="••••••••">
+        </div>
+        <div class="input-group">
+            <label>تأكيد كلمة المرور</label>
+            <input type="password" id="signup-confirm-password" placeholder="••••••••">
+        </div>
+        <button onclick="handleSignup()">تسجيل</button>
+        <p class="toggle-text">عندك حساب بالفعل؟ <span onclick="toggleForms()">تسجيل الدخول</span></p>
+    </div>
+
+    <div id="error-box" class="error-msg"></div>
+    <div id="success-box" class="success-msg"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
