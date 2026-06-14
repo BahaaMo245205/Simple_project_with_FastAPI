@@ -1,0 +1,1 @@
+# Simple Project with FastAPI and JWT(Json Wen Token)

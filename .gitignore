@@ -1,0 +1,5 @@
+.env
+venv/
+*.db
+*.ini
+codes.md
