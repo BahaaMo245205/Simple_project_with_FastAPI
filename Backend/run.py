@@ -1,12 +1,17 @@
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException, status
-from pydantic import EmailStr, Field,BaseModel
+from fastapi import FastAPI, HTTPException, status, Depends
+from pydantic import EmailStr, Field, BaseModel
 from Backend.Backend_App.model import User
 from Backend.Backend_App.model import Base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from Backend.config import Config
-import hashlib
+from Backend.helper import (
+    generate_password_hash,
+    is_password_valid,
+    create_access_token,
+    get_current_user,
+)
 
 engine = create_engine(Config.db)
 Base.metadata.create_all(bind=engine)
@@ -22,37 +27,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def hash_password(password: str) -> str:
-    sha256_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
-    return sha256_hash
 
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    sha256_hash = hashlib.sha256(plain_password.encode("utf-8")).hexdigest()
-    if sha256_hash == hashed_password:
-        return True
-
-    return None
-
-class RegisterUser (BaseModel):
+class RegisterUser(BaseModel):
     username: str
     email: EmailStr
     password: str = Field(min_length=8)
     confirm_password: str = Field(min_length=8)
 
-class Login (BaseModel):
-    email:EmailStr
-    password:str
+
+class Login(BaseModel):
+    email: EmailStr
+    password: str
+
 
 @app.post("/v1/AddUser")
-async def registerUser(
-    register=RegisterUser
-):
+async def registerUser(register: RegisterUser):
     """Create New User"""
     try:
         if register.password == register.confirm_password:
             add_user = User(
-                username=register.username, email=register.email, password=hash_password(register.password)
+                username=register.username,
+                email=register.email,
+                password=generate_password_hash(register.password),
             )
             if add_user:
                 session.add(add_user)
@@ -70,15 +66,30 @@ async def registerUser(
 
 
 @app.post("/v1/login")
-async def login(LoginUser=Login):
+async def login(LoginUser: Login):
     """Login Account"""
 
     user = session.query(User).filter_by(Email=LoginUser.email).first()
-    if user and verify_password(plain_password=LoginUser.password, hashed_password=user.password):
-        return {"Status": "Success", "Message": f"Hello {user.UserName}"}
 
-    else:
+    if not user or not is_password_valid(LoginUser.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Something Wrong enail or password .",
+            detail="إيميل أو كلمة مرور خاطئة",
+            headers={"WWW-Authenticate": "Bearer"},
         )
+
+    access_token = create_access_token(data={"sub": user.Email})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "Message": "Login Successful",
+    }
+
+
+@app.get("/v1/dashboard")
+async def get_dashboard_data(current_user: str = Depends(get_current_user)):
+    return {
+        "Status": "Success",
+        "Message": f"مرحباً بك في لوحة التحكم السرية يا {current_user}",
+        "SecretData": "بيانات الجيم والمبيعات المشفرة هنا 🏋️‍♂️💰",
+    }

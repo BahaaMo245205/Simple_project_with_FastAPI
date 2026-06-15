@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://127.0.0.1:8000/v1"; // تأكد من بورت السيرفر بتاعك
+const BACKEND_URL = "http://127.0.0.1:8000/v1"; 
 
 // دالة التنقل بين شاشتي الـ Login والـ Signup
 function toggleForms() {
@@ -96,10 +96,12 @@ async function handleLogin() {
         const data = await response.json();
 
         if (response.ok) {
-            showMessage("success", data.Message); // هيقولك Hello {username}
-            
+            showMessage("success", data.Message); 
             // الخطوة الجاية لما تفعل الـ JWT الحقيقي:
-            // localStorage.setItem("access_token", data.access_token);
+            localStorage.setItem("access_token", data.access_token);
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            },1000);
             
         } else {
             showMessage("error", data.detail || "بيانات الدخول غير صحيحة.");
