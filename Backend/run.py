@@ -12,11 +12,21 @@ from Backend.helper import (
     create_access_token,
     get_current_user,
 )
+import redis
+import pymysql
 
-engine = create_engine(Config.db)
+
+DB_USER = "root"
+DB_PASSWORD = Config.mysql_password
+DB_HOST = "db" 
+DB_PORT = "3306"
+DB_NAME = "socialDB"
+DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+engine = create_engine(DATABASE_URL,pool_pre_ping=True)
 Base.metadata.create_all(bind=engine)
-
-Session = sessionmaker(bind=engine)
+r = redis.Redis(host="redis", port="6379", db=0, decode_responses=True)
+Session = sessionmaker(bind=engine,autocommit=False, autoflush=False)
 session = Session()
 app = FastAPI()
 app.add_middleware(
@@ -53,6 +63,11 @@ async def registerUser(register: RegisterUser):
             if add_user:
                 session.add(add_user)
                 session.commit()
+                r.hset(f"{register.email}",mapping={
+                    "username": register.username,
+                    "email" : register.email,
+                    "password":generate_password_hash(register.password)
+                })
                 {"Status": "Success", "Message": "User Added Successfully"}
         else:
             raise HTTPException(
@@ -69,16 +84,29 @@ async def registerUser(register: RegisterUser):
 async def login(LoginUser: Login):
     """Login Account"""
 
-    user = session.query(User).filter_by(Email=LoginUser.email).first()
+    cached_user = r.hgetall(f"{LoginUser.email}")     
+    
+    db_user = None
+    user_email = None
+    hashed_password = None
 
-    if not user or not is_password_valid(LoginUser.password, user.password):
+    if cached_user:
+        user_email = cached_user.get('email')
+        hashed_password = cached_user.get('password')
+    else:
+        db_user = session.query(User).filter_by(Email=LoginUser.email).first()
+        if db_user:
+            user_email = db_user.Email
+            hashed_password = db_user.password
+
+    if not user_email or not is_password_valid(LoginUser.password, hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="إيميل أو كلمة مرور خاطئة",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token = create_access_token(data={"sub": user.Email})
+    access_token = create_access_token(data={"sub": user_email})
     return {
         "access_token": access_token,
         "token_type": "bearer",

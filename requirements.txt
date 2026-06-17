@@ -5,3 +5,5 @@ passlib[bcrypt]
 python-dotenv
 python-jose[cryptography]
 sqlalchemy
+redis
+pymysql

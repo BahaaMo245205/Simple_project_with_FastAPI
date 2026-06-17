@@ -13,10 +13,10 @@ def genrate_uuid():
 class User(Base):
     __tablename__ = "user"
 
-    UserId = Column("UserId", String, primary_key=True, default=genrate_uuid)
-    UserName = Column("UserName", String)
-    Email = Column("Email", String)
-    password = Column("password", String)
+    UserId = Column( String(100), primary_key=True, default=genrate_uuid)
+    UserName = Column( String(100))
+    Email = Column(String(100))
+    password = Column(String(100))
     
     def __init__ (self,username,email,password):
         self.UserName = username
